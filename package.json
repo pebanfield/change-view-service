@@ -1,0 +1,22 @@
+{
+  "name": "change-view-service",
+  "version": "1.0.0",
+  "description": "A service for parsing git repository history using nodegit.",
+  "main": "parser.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pebanfield/change-view-service.git"
+  },
+  "author": "pebanfield",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pebanfield/change-view-service/issues"
+  },
+  "homepage": "https://github.com/pebanfield/change-view-service#readme",
+  "dependencies": {
+    "nodegit": "^0.4.1"
+  }
+}
