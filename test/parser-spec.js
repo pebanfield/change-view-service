@@ -11,7 +11,7 @@ describe('node-git parser', function(){
     it('should return a git log history', function(done){
 
       parser.getHistory().then(function(commits){
-        console.log(commits);
+        assert.ok(commits);
         done();
       });
     });

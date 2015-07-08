@@ -18,8 +18,7 @@
   "homepage": "https://github.com/pebanfield/change-view-service#readme",
   "dependencies": {
     "bluebird": "^2.9.32",
-    "nodegit": "^0.4.1",
-    "promisify-node": "^0.1.5"
+    "nodegit": "^0.4.1"
   },
   "devDependencies": {
     "gulp": "^3.9.0",
