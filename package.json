@@ -2,7 +2,7 @@
   "name": "change-view-service",
   "version": "1.0.0",
   "description": "A service for parsing git repository history using nodegit.",
-  "main": "parser.js",
+  "main": "src/parser.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,6 +17,12 @@
   },
   "homepage": "https://github.com/pebanfield/change-view-service#readme",
   "dependencies": {
-    "nodegit": "^0.4.1"
+    "bluebird": "^2.9.32",
+    "nodegit": "^0.4.1",
+    "promisify-node": "^0.1.5"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-mocha": "^2.1.2"
   }
 }
