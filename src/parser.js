@@ -61,6 +61,7 @@ function _getHistory(){
                 entryObj.name = nameArray[nameArray.length-1];
                 entryObj.author = responseCommits[commitIndex].author;
                 entryObj.date = responseCommits[commitIndex].date;
+                entryObj.sha = entry.sha();
               } catch(error) {
                 console.log("error : " + error);
               }
@@ -111,7 +112,7 @@ function _setStatus(commits, entryTable){
       var previousEntry = entryTable[entry.path];
       if(previousEntry){
 
-        if(entry.date != previousEntry.date){
+        if(entry.sha != previousEntry.sha){
           entry.status = 'modified';
         }
       } else {
