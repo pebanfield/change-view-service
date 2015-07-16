@@ -5,6 +5,7 @@
 
 var nodegit = require("nodegit");
 var Promise = require('bluebird');
+var _defaultDelay = 100;
 
 var api = {getHistory: _getHistory};
 
@@ -72,7 +73,7 @@ function _parseCommit(commit){
       });
     });
 
-  }, 500)});
+  }, _defaultDelay)});
 }
 
 function _parseEntry(entry){
@@ -98,7 +99,7 @@ function _parseEntry(entry){
         entryObj.mode = blob.filemode();
         resolve(entryObj);
       });
-    }, 500)})
+    }, _defaultDelay)})
     .catch(function(error){
       console.log('Error : ' + error.message);
     });
@@ -114,7 +115,7 @@ function _parseEntry(entry){
           entryObj.entries = entries;
           resolve(entryObj);
         });
-      }, 500)})
+      }, _defaultDelay)})
       .catch(function(error){
         console.log('Error : ' + error.message);
       });
