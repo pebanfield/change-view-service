@@ -1,5 +1,5 @@
 /**
- * app
+ * parses and returns a JSON git history collection.
  */
 "use strict";
 
