@@ -43,8 +43,8 @@ describe('node-git parser', function(){
 
       parser.getHistory().then(function(commits){
 
-        var commitOne = commits[3];
-        assert.ok(commitOne.entries[0].size);
+        var commitThree = commits[3];
+        assert.ok(commitThree.entries[0].size);
         done();
       });
     });
@@ -53,8 +53,22 @@ describe('node-git parser', function(){
 
       parser.getHistory().then(function(commits){
 
-        var commitOne = commits[3];
-        assert.ok(commitOne.entries[0].size);
+        var commitFive = commits[5];
+        var subdirectory = commitFive.entries[2];
+        assert.equal(subdirectory.name, 'subdirectory');
+        done();
+      });
+    });
+
+    it('should return a package file', function(done){
+
+      parser.getHistory().then(function(commits){
+
+        var commitFive = commits[5];
+        var subdirectory = commitFive.entries[2];
+        var packageFile = subdirectory.entries[0];
+        assert.equal(subdirectory.name, 'subdirectory');
+        assert.equal(packageFile.name, 'subfileone.js');
         done();
       });
     });
