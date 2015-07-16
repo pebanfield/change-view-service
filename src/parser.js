@@ -20,7 +20,7 @@ function _getHistory(){
     })
     .then(function(firstCommitOnMaster) {
 
-      var resolver = Promise.defer();
+      var resolver = Promise.defer(); //anti-pattern used to deal w/ .on('end' emitter
       var history = firstCommitOnMaster.history();
 
       history.on('end', function(commits){
@@ -30,6 +30,9 @@ function _getHistory(){
           responseCommits.reverse(); //prints history with the most recent commit last
           _setStatus(responseCommits, entryTable);
           resolver.resolve(responseCommits);
+        })
+        .catch(function(error){
+          console.log('Error : ' + error.message);
         });
       });
 
@@ -42,10 +45,14 @@ function _getHistory(){
 function _parseCommit(commit){
 
   var commitObj = {};
-  commitObj.author = commit.author().name();
-  commitObj.revision = commit.sha();
-  commitObj.date = commit.date();
-  commitObj.message = commit.message();
+  try {
+    commitObj.author = commit.author().name();
+    commitObj.revision = commit.sha();
+    commitObj.date = commit.date();
+    commitObj.message = commit.message();
+  } catch(error) {
+    console.log("error : " + error);
+  }
 
   return new Promise(function(resolve){ setTimeout(function(){
 
@@ -59,6 +66,9 @@ function _parseCommit(commit){
         });
         commitObj.entries = entries;
         resolve(commitObj);
+      })
+      .catch(function(error){
+        console.log('Error : ' + error.message);
       });
     });
 
@@ -83,16 +93,15 @@ function _parseEntry(entry){
 
       entry.getBlob().then(function(blob){
 
-        try {
-          entryObj.size = blob.rawsize();
-          entryObj.kind = 'file';
-          entryObj.mode = blob.filemode();
-        } catch(error){
-          console.log("error : " + error);
-        }
+        entryObj.size = blob.rawsize();
+        entryObj.kind = 'file';
+        entryObj.mode = blob.filemode();
         resolve(entryObj);
       });
-    }, 500)});
+    }, 500)})
+    .catch(function(error){
+      console.log('Error : ' + error.message);
+    });
 
   } else {
 
@@ -105,7 +114,10 @@ function _parseEntry(entry){
           entryObj.entries = entries;
           resolve(entryObj);
         });
-      }, 500)});
+      }, 500)})
+      .catch(function(error){
+        console.log('Error : ' + error.message);
+      });
     });
   }
 
@@ -113,22 +125,35 @@ function _parseEntry(entry){
 
 function _setStatus(commits, entryTable){
 
+  var parseEntry = function(entry){
+
+    var previousEntry = entryTable[entry.path];
+    if(previousEntry){
+
+      if(entry.sha != previousEntry.sha){
+        entry.status = 'modified';
+      }
+    } else {
+      entry.status = 'added';
+      entryTable[entry.path] = entry;
+      if(entry.kind === 'tree'){
+
+        if(entry.entries && entry.entries.length > 0){
+
+          entry.entries.forEach(function(entry){
+            parseEntry(entry);
+          });
+        }
+      }
+    }
+  };
+
   commits.forEach(function(commit){
 
     commit.entries.forEach(function(entry){
-
-      var previousEntry = entryTable[entry.path];
-      if(previousEntry){
-
-        if(entry.sha != previousEntry.sha){
-          entry.status = 'modified';
-        }
-      } else {
-        entry.status = 'added';
-        entryTable[entry.path] = entry;
-      }
-
+      parseEntry(entry);
     });
+
     //identify deleted entries
     for (var property in entryTable) {
       if (entryTable.hasOwnProperty(property)) {

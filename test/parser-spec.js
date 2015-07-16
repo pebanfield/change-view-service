@@ -60,7 +60,7 @@ describe('node-git parser', function(){
       });
     });
 
-    it('should return a package file', function(done){
+    it('should return a nested package file', function(done){
 
       parser.getHistory().then(function(commits){
 
@@ -69,6 +69,18 @@ describe('node-git parser', function(){
         var packageFile = subdirectory.entries[0];
         assert.equal(subdirectory.name, 'subdirectory');
         assert.equal(packageFile.name, 'subfileone.js');
+        done();
+      });
+    });
+
+    it('should return status for a nested package file', function(done){
+
+      parser.getHistory().then(function(commits){
+
+        var commitFive = commits[5];
+        var subdirectory = commitFive.entries[2];
+        var packageFile = subdirectory.entries[0];
+        assert.equal(packageFile.status, 'added');
         done();
       });
     });
