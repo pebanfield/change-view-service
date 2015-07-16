@@ -5,7 +5,6 @@
 
 var nodegit = require("nodegit");
 var Promise = require('bluebird');
-var _defaultDelay = 100;
 
 var api = {getHistory: _getHistory};
 
@@ -55,25 +54,21 @@ function _parseCommit(commit){
     console.log("error : " + error);
   }
 
-  return new Promise(function(resolve){ setTimeout(function(){
+  return commit.getTree().then(function(tree){
 
-    commit.getTree().then(function(tree){
-
-      Promise.all(tree.entries().map(_parseEntry)).then(function(entries){
+      return Promise.all(tree.entries().map(_parseEntry)).then(function(entries){
 
         entries.forEach(function(entry){
           entry.author = commitObj.author;
           entry.date = commitObj.date;
         });
         commitObj.entries = entries;
-        resolve(commitObj);
+        return commitObj;
       })
-      .catch(function(error){
-        console.log('Error : ' + error.message);
-      });
+    })
+    .catch(function(error){
+      console.log('Error : ' + error.message);
     });
-
-  }, _defaultDelay)});
 }
 
 function _parseEntry(entry){
@@ -90,16 +85,13 @@ function _parseEntry(entry){
 
   if(entry.isFile()){
 
-    return new Promise(function(resolve){ setTimeout(function(){
-
-      entry.getBlob().then(function(blob){
+    return entry.getBlob().then(function(blob){
 
         entryObj.size = blob.rawsize();
         entryObj.kind = 'file';
         entryObj.mode = blob.filemode();
-        resolve(entryObj);
-      });
-    }, _defaultDelay)})
+        return entryObj;
+      })
     .catch(function(error){
       console.log('Error : ' + error.message);
     });
@@ -108,14 +100,11 @@ function _parseEntry(entry){
 
     entryObj.kind = 'tree';
     return entry.getTree().then(function(tree) {
-      return new Promise(function(resolve){ setTimeout(function(){
-
-        Promise.all(tree.entries().map(_parseEntry)).then(function(entries){
+      return Promise.all(tree.entries().map(_parseEntry)).then(function(entries){
 
           entryObj.entries = entries;
-          resolve(entryObj);
-        });
-      }, _defaultDelay)})
+          return entryObj;
+        })
       .catch(function(error){
         console.log('Error : ' + error.message);
       });
