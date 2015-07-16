@@ -13,21 +13,15 @@ function _getHistory(){
   var entryTable = {};
   var open = nodegit.Repository.open;
 
-  // Open the repository directory.
   return open("test/data")
-    // Open the master branch.
+
     .then(function(repo) {
       return repo.getMasterCommit();
     })
-    // Display information about commits on master.
     .then(function(firstCommitOnMaster) {
-      // Create a new history event emitter.
+
       var resolver = Promise.defer();
       var history = firstCommitOnMaster.history();
-
-      // Listen for commit events from the history.
-      history.on('commit', function(commit) {
-      });
 
       history.on('end', function(commits){
 
@@ -39,7 +33,6 @@ function _getHistory(){
         });
       });
 
-      // Start emitting events.
       history.start();
 
       return resolver.promise;
