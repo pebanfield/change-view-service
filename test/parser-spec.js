@@ -39,5 +39,25 @@ describe('node-git parser', function(){
       });
     });
 
+    it('should return a file size property', function(done){
+
+      parser.getHistory().then(function(commits){
+
+        var commitOne = commits[3];
+        assert.ok(commitOne.entries[0].size);
+        done();
+      });
+    });
+
+    it('should return directory entry', function(done){
+
+      parser.getHistory().then(function(commits){
+
+        var commitOne = commits[3];
+        assert.ok(commitOne.entries[0].size);
+        done();
+      });
+    });
+
   })
 });

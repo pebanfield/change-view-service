@@ -13,11 +13,10 @@ function _getHistory(){
   var entryTable = {};
   var open = nodegit.Repository.open;
 
-// Open the repository directory.
+  // Open the repository directory.
   return open("test/data")
     // Open the master branch.
     .then(function(repo) {
-
       return repo.getMasterCommit();
     })
     // Display information about commits on master.
@@ -32,67 +31,11 @@ function _getHistory(){
 
       history.on('end', function(commits){
 
-        var responseCommits = [];
-        var commitTreeCalls = [];
+        Promise.all(commits.map(_parseCommit)).then(function(responseCommits){
 
-        commits.forEach(function(commit){
-
-          var commitObj = {};
-          commitObj.author = commit.author().name();
-          commitObj.revision = commit.sha();
-          commitObj.date = commit.date();
-          commitObj.message = commit.message();
-          commitObj.entries = [];
-          commitTreeCalls.push(commit.getTree());
-          responseCommits.push(commitObj);
-        });
-
-        Promise.all(commitTreeCalls).then(function(commitTrees){
-
-          commitTrees.forEach(function(commitTree, commitIndex){
-
-            var entries = commitTree.entries();
-
-            entries.forEach(function(entry, entryIndex){
-              var entryObj = {};
-              try {
-                entryObj.path = entry.path();
-                var nameArray = entry.path().split("/");
-                entryObj.name = nameArray[nameArray.length-1];
-                entryObj.author = responseCommits[commitIndex].author;
-                entryObj.date = responseCommits[commitIndex].date;
-                entryObj.sha = entry.sha();
-              } catch(error) {
-                console.log("error : " + error);
-              }
-
-              if(entry.isFile()){
-
-                entry.getBlob().then(function(blob){
-
-                  try {
-                    entryObj.size = blob.rawsize();
-                    entryObj.kind = 'file';
-                    entryObj.mode = blob.filemode();
-                  } catch(error){
-                    console.log("error : " + error);
-                  }
-                  if(entryIndex === entries.length-1 && commitIndex === commitTrees.length-1){
-
-                    responseCommits.reverse(); //prints history with the most recent commit last
-                    _setStatus(responseCommits, entryTable);
-                    resolver.resolve(responseCommits);
-                  }
-                });
-              } else {
-                entryObj.kind = 'tree';
-              }
-
-              responseCommits[commitIndex].entries.push(entryObj);
-            });
-
-          });
-
+          responseCommits.reverse(); //prints history with the most recent commit last
+          _setStatus(responseCommits, entryTable);
+          resolver.resolve(responseCommits);
         });
       });
 
@@ -101,6 +44,78 @@ function _getHistory(){
 
       return resolver.promise;
     });
+}
+
+function _parseCommit(commit){
+
+  var commitObj = {};
+  commitObj.author = commit.author().name();
+  commitObj.revision = commit.sha();
+  commitObj.date = commit.date();
+  commitObj.message = commit.message();
+
+  return new Promise(function(resolve){ setTimeout(function(){
+
+    commit.getTree().then(function(tree){
+
+      Promise.all(tree.entries().map(_parseEntry)).then(function(entries){
+
+        entries.forEach(function(entry){
+          entry.author = commitObj.author;
+          entry.date = commitObj.date;
+        });
+        commitObj.entries = entries;
+        resolve(commitObj);
+      });
+    });
+
+  }, 500)});
+}
+
+function _parseEntry(entry){
+
+  var entryObj = {};
+  try {
+    entryObj.path = entry.path();
+    var nameArray = entry.path().split("/");
+    entryObj.name = nameArray[nameArray.length-1];
+    entryObj.sha = entry.sha();
+  } catch(error) {
+    console.log("error : " + error);
+  }
+
+  if(entry.isFile()){
+
+    return new Promise(function(resolve){ setTimeout(function(){
+
+      entry.getBlob().then(function(blob){
+
+        try {
+          entryObj.size = blob.rawsize();
+          entryObj.kind = 'file';
+          entryObj.mode = blob.filemode();
+        } catch(error){
+          console.log("error : " + error);
+        }
+        resolve(entryObj);
+      });
+    }, 500)});
+
+  } else {
+
+    entryObj.kind = 'tree';
+    return entry.getTree().then(function(tree) {
+      return new Promise(function(resolve){ setTimeout(function(){
+
+        Promise.all(tree.entries().map(_parseEntry)).then(function(entries){
+
+          entryObj.entries = entries;
+          resolve(entryObj);
+        });
+      }, 500)});
+    });
+  }
+
 }
 
 function _setStatus(commits, entryTable){
