@@ -65,10 +65,10 @@ function _parseCommit(commit){
         commitObj.entries = entries;
         return commitObj;
       })
-    })
+  })
     .catch(function(error){
       console.log('Error : ' + error.message);
-    });
+  });
 }
 
 function _parseEntry(entry){
@@ -115,7 +115,7 @@ function _parseEntry(entry){
 
 function _setStatus(commits, entryTable){
 
-  var parseEntry = function(entry){
+  var addModify = function(entry){
 
     var previousEntry = entryTable[entry.path];
     if(previousEntry){
@@ -131,38 +131,43 @@ function _setStatus(commits, entryTable){
         if(entry.entries && entry.entries.length > 0){
 
           entry.entries.forEach(function(entry){
-            parseEntry(entry);
+            addModify(entry);
           });
         }
       }
     }
   };
 
-  commits.forEach(function(commit){
+  //identify deleted entries and remove
+  var findDeleted = function(entry, entryTable){
 
-    commit.entries.forEach(function(entry){
-      parseEntry(entry);
-    });
-
-    //identify deleted entries
+    var exists = false;
+    var currentProperty;
     for (var property in entryTable) {
+
       if (entryTable.hasOwnProperty(property)) {
-        var exists = false;
-        var currentEntry = null;
-        commit.entries.forEach(function(entry){
-          currentEntry = entry;
-          if(entry.path === entryTable[property].path){
-            exists = true;
-          }
-        });
-        if(!exists){
-          entryTable[property].status = 'deleted';
-          commit.entries.push(entryTable[property]);
-          delete entryTable[property];
+        currentProperty = property;
+        if(entry.path === entryTable[currentProperty].path){
+          exists = true;
+          break;
         }
       }
     }
+    if(!exists){
+      entryTable[currentProperty].status = 'deleted';
+      delete entryTable[currentProperty];
+    }
+     if(entry.entries && entry.entries.length > 0){
+       entry.entries.map(function(entry) { return findDeleted(entry, entryTable); });
+     }
+  };
+
+  commits.forEach(function(commit) {
+
+    commit.entries.map(addModify);
+    commit.entries.map(function(entry) { return findDeleted(entry, entryTable); });
   });
+
 }
 
 module.exports = api;

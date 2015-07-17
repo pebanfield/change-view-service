@@ -32,9 +32,9 @@ describe('node-git parser', function(){
       parser.getHistory().then(function(commits){
 
         var commitOne = commits[0];
-        var commitTwo = commits[2];
+        var commitTwo = commits[1];
         assert.equal(commitOne.entries[0].status, 'added');
-        assert.equal(commitTwo.entries[1].status, 'deleted');
+        assert.equal(commitTwo.entries[1].status, 'modified');
         done();
       });
     });
