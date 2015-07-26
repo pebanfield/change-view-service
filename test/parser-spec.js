@@ -6,7 +6,7 @@ var parser = require("../src/parser");
 
 describe('node-git parser', function(){
 
-  describe('getHistory', function(done){
+  describe('getHistory', function(){
 
     it('should return a git log history as a json object', function(done){
 
@@ -81,6 +81,21 @@ describe('node-git parser', function(){
         var subdirectory = commitFive.entries[2];
         var packageFile = subdirectory.entries[0];
         assert.equal(packageFile.status, 'added');
+        done();
+      });
+    });
+
+    it('should return status for a nested package package', function(done){
+
+      parser.getHistory().then(function(commits){
+
+        var commitFive = commits[6];
+        var subdirectory = commitFive.entries[2];
+        var subofsub = subdirectory.entries[1];
+        var subfileone = subofsub.entries[0];
+        var subfiletwo = subofsub.entries[1];
+        assert.equal(subfileone.name, 'newfile.js');
+        assert.equal(subfiletwo.name, 'newfiletwo.js');
         done();
       });
     });

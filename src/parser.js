@@ -117,19 +117,26 @@ function _setStatus(commits, entryTable){
 
   var addModify = function(entry){
 
+    entry.status = 'deleted'; //unidentified entries will be deleted
     var previousEntry = entryTable[entry.path];
+    //null check not working because of hierarchy
     if(previousEntry){
 
       if(entry.sha != previousEntry.sha){
         entry.status = 'modified';
+      } else {
+        entry.status = 'unchanged';
       }
     } else {
-      entry.status = 'added';
+      if(entry.status === 'added'){
+        entry.status = 'unchanged';
+      } else {
+        entry.status = 'added';
+      }
       entryTable[entry.path] = entry;
       if(entry.kind === 'tree'){
 
         if(entry.entries && entry.entries.length > 0){
-
           entry.entries.forEach(function(entry){
             addModify(entry);
           });
@@ -139,33 +146,17 @@ function _setStatus(commits, entryTable){
   };
 
   //identify deleted entries and remove
-  var findDeleted = function(entry, entryTable){
+  var removeDeleted = function(entry, entryTable){
 
-    var exists = false;
-    var currentProperty;
-    for (var property in entryTable) {
-
-      if (entryTable.hasOwnProperty(property)) {
-        currentProperty = property;
-        if(entry.path === entryTable[currentProperty].path){
-          exists = true;
-          break;
-        }
-      }
+    if(entry.status === 'deleted'){
+      delete entryTable[entry.path];
     }
-    if(!exists){
-      entryTable[currentProperty].status = 'deleted';
-      delete entryTable[currentProperty];
-    }
-     if(entry.entries && entry.entries.length > 0){
-       entry.entries.map(function(entry) { return findDeleted(entry, entryTable); });
-     }
   };
 
   commits.forEach(function(commit) {
 
     commit.entries.map(addModify);
-    commit.entries.map(function(entry) { return findDeleted(entry, entryTable); });
+    commit.entries.map(function(entry) { return removeDeleted(entry, entryTable); });
   });
 
 }
