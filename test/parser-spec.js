@@ -10,7 +10,7 @@ describe('node-git parser', function(){
 
     it('should return a git log history as a json object', function(done){
 
-      parser.getHistory().then(function(commits){
+      parser.getHistory('test/data/').then(function(commits){
         assert.ok(commits);
         done();
       });
@@ -18,7 +18,7 @@ describe('node-git parser', function(){
 
     it('should return single commit json objects with latest first', function(done){
 
-      parser.getHistory().then(function(commits){
+      parser.getHistory('test/data/').then(function(commits){
 
         var commitOne = commits[0];
 
@@ -29,7 +29,7 @@ describe('node-git parser', function(){
 
     it('should return commit entry status', function(done){
 
-      parser.getHistory().then(function(commits){
+      parser.getHistory('test/data/').then(function(commits){
 
         var commitOne = commits[0];
         var commitTwo = commits[1];
@@ -41,7 +41,7 @@ describe('node-git parser', function(){
 
     it('should return a file size property', function(done){
 
-      parser.getHistory().then(function(commits){
+      parser.getHistory('test/data/').then(function(commits){
 
         var commitThree = commits[3];
         assert.ok(commitThree.entries[0].size);
@@ -51,7 +51,7 @@ describe('node-git parser', function(){
 
     it('should return directory entry', function(done){
 
-      parser.getHistory().then(function(commits){
+      parser.getHistory('test/data/').then(function(commits){
 
         var commitFive = commits[5];
         var subdirectory = commitFive.entries[2];
@@ -62,7 +62,7 @@ describe('node-git parser', function(){
 
     it('should return a nested package file', function(done){
 
-      parser.getHistory().then(function(commits){
+      parser.getHistory('test/data/').then(function(commits){
 
         var commitFive = commits[5];
         var subdirectory = commitFive.entries[2];
@@ -75,7 +75,7 @@ describe('node-git parser', function(){
 
     it('should return status for a nested package file', function(done){
 
-      parser.getHistory().then(function(commits){
+      parser.getHistory('test/data/').then(function(commits){
 
         var commitFive = commits[5];
         var subdirectory = commitFive.entries[2];
@@ -87,7 +87,7 @@ describe('node-git parser', function(){
 
     it('should return status for a nested package package', function(done){
 
-      parser.getHistory().then(function(commits){
+      parser.getHistory('test/data/').then(function(commits){
 
         var commitFive = commits[6];
         var subdirectory = commitFive.entries[2];

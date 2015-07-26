@@ -8,19 +8,24 @@ var Promise = require('bluebird');
 
 var api = {getHistory: _getHistory};
 
-function _getHistory(){
+function _getHistory(repo_path, branch_name){
 
   var entryTable = {};
   var open = nodegit.Repository.open;
 
-  return open("test/data")
+  return open(repo_path)
 
     .then(function(repo) {
-      return repo.getMasterCommit();
+
+      if(branch_name){
+        repository.getBranch(branch_name);
+      } else {
+        return repo.getMasterCommit();
+      }
     })
     .then(function(firstCommitOnMaster) {
 
-      var resolver = Promise.defer(); //anti-pattern used to deal w/ .on('end' emitter
+      var resolver = Promise.defer();
       var history = firstCommitOnMaster.history();
 
       history.on('end', function(commits){
@@ -49,6 +54,7 @@ function _parseCommit(commit){
     commitObj.author = commit.author().name();
     commitObj.revision = commit.sha();
     commitObj.date = commit.date();
+    commitObj.time = new Date(commit.date()).getTime();
     commitObj.message = commit.message();
   } catch(error) {
     console.log("error : " + error);
