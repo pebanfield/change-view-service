@@ -7,10 +7,11 @@ var nodegit = require("nodegit");
 var Promise = require('bluebird');
 
 var api = {getHistory: _getHistory};
+var entryTable;
 
 function _getHistory(repo_path, branch_name){
 
-  var entryTable = {};
+  entryTable = {};
   var open = nodegit.Repository.open;
 
   return open(repo_path)
@@ -18,14 +19,14 @@ function _getHistory(repo_path, branch_name){
     .then(function(repo) {
 
       if(branch_name){
-        repository.getBranch(branch_name);
+        return repo.getBranchCommit(branch_name);
       } else {
         return repo.getMasterCommit();
       }
     })
     .then(function(firstCommitOnMaster) {
 
-      var resolver = Promise.defer();
+      var resolver = Promise.defer(); //used to deal with emitter .on('end'
       var history = firstCommitOnMaster.history();
 
       history.on('end', function(commits){
@@ -33,7 +34,6 @@ function _getHistory(repo_path, branch_name){
         Promise.all(commits.map(_parseCommit)).then(function(responseCommits){
 
           responseCommits.reverse(); //prints history with the most recent commit last
-          _setStatus(responseCommits, entryTable);
           resolver.resolve(responseCommits);
         })
         .catch(function(error){
@@ -67,6 +67,7 @@ function _parseCommit(commit){
         entries.forEach(function(entry){
           entry.author = commitObj.author;
           entry.date = commitObj.date;
+          _setStatus(entry, entryTable);
         });
         commitObj.entries = entries;
         return commitObj;
@@ -119,52 +120,27 @@ function _parseEntry(entry){
 
 }
 
-function _setStatus(commits, entryTable){
+function _setStatus(entry, entryTable){
 
-  var addModify = function(entry){
+  entry.status = 'deleted'; //unidentified entries will be deleted
+  var previousEntry = entryTable[entry.path];
+  //null check not working because of hierarchy
+  if(previousEntry){
 
-    entry.status = 'deleted'; //unidentified entries will be deleted
-    var previousEntry = entryTable[entry.path];
-    //null check not working because of hierarchy
-    if(previousEntry){
-
-      if(entry.sha != previousEntry.sha){
-        entry.status = 'modified';
-      } else {
-        entry.status = 'unchanged';
-      }
+    if(entry.sha != previousEntry.sha){
+      entry.status = 'modified';
     } else {
-      if(entry.status === 'added'){
-        entry.status = 'unchanged';
-      } else {
-        entry.status = 'added';
-      }
-      entryTable[entry.path] = entry;
-      if(entry.kind === 'tree'){
-
-        if(entry.entries && entry.entries.length > 0){
-          entry.entries.forEach(function(entry){
-            addModify(entry);
-          });
-        }
-      }
+      entry.status = 'unchanged';
     }
-  };
+  } else {
+    entry.status = 'added';
+    entryTable[entry.path] = entry;
+  }
+  if(entry.status === 'deleted'){
+    delete entryTable[entry.path];
+  }
 
-  //identify deleted entries and remove
-  var removeDeleted = function(entry, entryTable){
-
-    if(entry.status === 'deleted'){
-      delete entryTable[entry.path];
-    }
-  };
-
-  commits.forEach(function(commit) {
-
-    commit.entries.map(addModify);
-    commit.entries.map(function(entry) { return removeDeleted(entry, entryTable); });
-  });
-
+  return entry;
 }
 
 module.exports = api;
