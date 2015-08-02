@@ -2,7 +2,7 @@
  * parser-spec
  */
 var assert = require("assert");
-var parser = require("../src/parser");
+var parser = require("../src/commit-parser");
 
 describe('node-git parser', function(){
 
@@ -108,7 +108,7 @@ describe('node-git parser', function(){
         var subdirectory = commitEight.entries[2];
         var subofsub = subdirectory.entries[1];
         var subfileone = subofsub.entries[0];
-        assert.equal(subfileone.name, 'newfile.js');
+        assert.equal(subfileone.name, 'newfileone.js');
         done();
       }).catch(done);
     });

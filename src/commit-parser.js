@@ -31,9 +31,8 @@ function _getHistory(repo_path, branch_name){
 
       history.on('end', function(commits){
 
+        commits.reverse(); //prints history with the most recent commit last
         Promise.all(commits.map(_parseCommit)).then(function(responseCommits){
-
-          responseCommits.reverse(); //prints history with the most recent commit last
           resolver.resolve(responseCommits);
         })
         .catch(function(error){
@@ -68,6 +67,7 @@ function _parseCommit(commit){
           entry.author = commitObj.author;
           entry.date = commitObj.date;
           _setStatus(entry, entryTable);
+          _updateRevisionProperties(entryTable[entry.path], entry);
         });
         commitObj.entries = entries;
         return commitObj;
@@ -110,6 +110,11 @@ function _parseEntry(entry){
       return Promise.all(tree.entries().map(_parseEntry)).then(function(entries){
 
           entryObj.entries = entries;
+          entryObj.entries.map(function(entry){
+            _setStatus(entry, entryTable);
+            _updateRevisionProperties(entryTable[entry.path], entry);
+          });
+
           return entryObj;
         })
       .catch(function(error){
@@ -141,6 +146,36 @@ function _setStatus(entry, entryTable){
   }
 
   return entry;
+}
+
+/*
+ Maintain properties spanning history, e.g. total authors, total commits.
+*/
+function _updateRevisionProperties(archivedEntry, newEntry){
+
+  if(!archivedEntry.commitTotal){
+    newEntry.commitTotal = 1;
+  } else {
+    newEntry.commitTotal = archivedEntry.commitTotal + 1;
+  }
+  if(!archivedEntry.sizeHistory){
+    newEntry.sizeHistory = [newEntry.size];
+  } else {
+    archivedEntry.sizeHistory.push(newEntry.size);
+    newEntry.sizeHistory = archivedEntry.sizeHistory;
+  }
+  if(!archivedEntry.pathHistory || archivedEntry.path === newEntry.path){
+    newEntry.pathHistory = [newEntry.path];
+  } else {
+    archivedEntry.pathHistory.push(newEntry.path);
+    newEntry.pathHistory = archivedEntry.pathHistory;
+  }
+  if(!archivedEntry.authors || archivedEntry.author === newEntry.author){
+    newEntry.authors = [newEntry.author];
+  } else {
+    archivedEntry.authors.push(newEntry.author);
+    newEntry.authors = archivedEntry.authors;
+  }
 }
 
 module.exports = api;
