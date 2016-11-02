@@ -28,7 +28,6 @@ function _sort(commits){
 
 function _setSignificance(entryObj){
 
-
   entryObj.significance =
     _getTypeValue(entryObj.type) +
     entryObj.size * FILE_SIZE_CHANGE_MUTLIPLE +
