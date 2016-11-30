@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/pebanfield/change-view-service#readme",
   "dependencies": {
-    "bluebird": "^2.9.32",
+    "bluebird": "^3.4.6",
     "nodegit": "^0.15.1"
   },
   "devDependencies": {
