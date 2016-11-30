@@ -14,7 +14,6 @@ function _getHistory(repo_path, branch_name){
   entryTable = {};
   var open = nodegit.Repository.open;
 
-  console.log("get history : open - " + open);
   return open(repo_path)
 
     .then(function(repo) {
@@ -35,10 +34,10 @@ function _getHistory(repo_path, branch_name){
         commits.reverse(); //prints history with the most recent commit last
         Promise.all(commits.map(_parseCommit)).then(function(responseCommits){
           resolver.resolve(responseCommits);
+        })
+        .catch(function(error){
+          console.log('Error : ' + error.message);
         });
-       // .catch(function(error){
-       //   console.log('Error : ' + error.message);
-       // });
       });
 
       history.start();
